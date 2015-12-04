@@ -25,6 +25,7 @@
 
 import time
 import re
+import optparse
 
 from logster.logster_helper import MetricObject, LogsterParser
 from logster.logster_helper import LogsterParsingException
@@ -43,14 +44,25 @@ class UrlHttpLogster(LogsterParser):
         self.key_url = 'test'
         self.url_regexp = '\/.*'
 
-        if option_string is not None:
+        if option_string:
             options = option_string.split(' ')
-            key_url = options[0]
-            url_regexp = options[1]
-        
+        else:
+            options = []
+
+        optparser = optparse.OptionParser()
+
+        optparser.add_option('--key-url', '-k', dest='key_url', default='test',
+        help='Key under which to record the metrics: \'.\'')
+
+        optparser.add_option('--url-regexp', '-u', dest='url_regexp', default='\/.*',
+        help='Regexp to constrain the URL match to: \'.\'')
+
+        opts, args = optparser.parse_args(args=options)
+        self.key_url = opts.key_url
+        self.url_regexp = opts.url_regexp
+
         # Regular expression for matching lines we are interested in, and capturing
-        # fields from the line (in this case, http_status_code).
-        # self.reg = re.compile('.*HTTP/1.\d\" (?P<http_status_code>\d{3}) .*')
+        # fields from the line (in this case, url and http_status_code).
         self.reg = re.compile('.*? \"(GET|POST) (?P<url>'+self.url_regexp+') HTTP/1.\d\" (?P<http_status_code>\d{3}) .*')
 
 
